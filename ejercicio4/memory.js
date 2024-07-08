@@ -31,6 +31,13 @@ class Card {
         const cardElement = this.element.querySelector(".card");
         cardElement.classList.remove("flipped");
     }
+    toggleFlip(){
+        this.isFlipped = !this.isFlipped
+        this.isFlipped ? this.#flip() : this.#unflip() 
+    }
+    matches(otherCard){
+        return this.name=== otherCard.name;
+    }
 }
 
 class Board {
@@ -56,6 +63,21 @@ class Board {
     #setGridColumns() {
         const columns = this.#calculateColumns();
         this.fixedGridElement.className = `fixed-grid has-${columns}-cols`;
+    }
+    shuffleCards(){
+        this.cards.sort(() => Math.random() - 0.5);
+        this.render();
+    }
+    flipDownAllCards(){
+        this.cards.forEach(card =>{
+            if (card.isFlipped){
+                card.toggleFlip();
+            }
+        });
+    }
+    reset(){
+        this.shuffleCards();
+        this.flipDownAllCards();
     }
 
     render() {
@@ -90,6 +112,7 @@ class MemoryGame {
         this.flipDuration = flipDuration;
         this.board.onCardClick = this.#handleCardClick.bind(this);
         this.board.reset();
+        this.startTimer();
     }
 
     #handleCardClick(card) {
@@ -101,6 +124,44 @@ class MemoryGame {
                 setTimeout(() => this.checkForMatch(), this.flipDuration);
             }
         }
+    }
+    checkForMatch(){
+        const [card1, card2] = this.flippedCards;
+        if( card1.matches(card2)){
+            this.matchedCards.push(card1, card2);
+            if(this.matchedCards.length === this.board.cards.length){
+                this.endGame();
+            }
+        }else{
+            card1.toggleFlip();
+            card2.toggleFlip();
+        }
+        this.flippedCards =[];
+    }
+    resetGame(){
+        this.board.reset();
+        this.flippedCards = [];
+        this.matchedCards = [];
+        this.moves = 0;
+        this.startTime = null;
+        this.stopTimer();
+        this.startTimer();
+    }
+    startTimer(){
+        this.startTime = Date.now();
+        this.timerInterval = setInterval(()=>{
+            const elapsedTime = Math.floor((Date.now()-this.startTime)/ 1000);
+            document.getElementById('timer').textContent =`Tiempo: ${elapsedTime} s`;
+        }, 1000);
+    }
+    stopTimer(){
+        clearInterval(this.timerInterval);
+    }
+    endGame(){
+        this.stopTimer();
+        const elapsedTime = Math.floor((Date.now()- this.startTime)/1000);
+        alert(`Finalizo el juego. Movimientos: ${this.moves}, Tiempo: ${elapsedTime} s`);
+
     }
 }
 

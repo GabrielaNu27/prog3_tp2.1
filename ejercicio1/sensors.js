@@ -1,4 +1,25 @@
-class Sensor {}
+class Sensor {
+    constructor(id, name, type, value, unit, updated_at){
+        this.id =id;
+        this.name = name;
+        this.type = type;
+        this.value = value;
+        this.unit = unit;
+        this.updated_at = updated_at;    //fecha de actualizacion del sensor
+    }
+    set updateValue(newValue){
+        this.value = newValue;
+        this.updated_at = new Date().toISOString();
+    }
+     validType(type){
+        const validType = ["temperature", "humidity", "pressure"]
+        if (validType == "temperature" || validType == "humidity" || validType == "pressure"){
+            console.log(" El tipo de sensor es el permitido")
+        }else{
+            console.log("Este tipo de sensor no esta permitido")
+        }
+    }
+}
 
 class SensorManager {
     constructor() {
@@ -33,7 +54,25 @@ class SensorManager {
         }
     }
 
-    async loadSensors(url) {}
+    async loadSensors(url) {
+        try{
+            const response = await fetch(url)
+            const data = await response.json();
+            this.sensors = data.map(sensor =>
+                new Sensor(
+                    sensor.id,
+                    sensor.name,
+                    sensor.type, 
+                    sensor.value,
+                    sensor.unit,
+                    sensor.updated_at
+                )
+            );
+            this.render();
+        }catch(error){
+            console.log(error);
+        }
+    }
 
     render() {
         const container = document.getElementById("sensor-container");
